@@ -1,0 +1,77 @@
+- name: copy kubelet certificates
+  copy:
+   src: "kubernetes/{{item}}"
+   dest: "{{kubeHomeDir}}/certs"
+  with_items:
+  - "{{caCert}}"
+  - "{{ansible_default_ipv4.address}}.pem"
+  - "{{ansible_default_ipv4.address}}-key.pem"
+  notify:
+  - restart kubelet
+
+- name: download {{serviceName}}-{{kubeVersion}} binary
+  vars:
+    file: kubelet
+  get_url:
+    url: "https://storage.googleapis.com/kubernetes-release/release/{{ kubeVersion }}/bin/linux/amd64/{{serviceName}}"
+    dest: "/tmp/{{serviceName}}-{{kubeVersion}}"
+
+- name: install {{serviceName}}-{{kubeVersion}} binaries to {{kubeHomeDir}}/bin/{{serviceName}}
+  vars:
+    file: kubelet
+  copy:
+    src: "/tmp/{{serviceName}}-{{kubeVersion}}"
+    dest: "{{kubeHomeDir}}/bin/{{serviceName}}"
+    remote_src: True
+    mode: 0544
+    owner: root
+  notify:
+  - restart {{serviceName}}
+
+- name: generate kubeconfig
+  args:
+   chdir: "{{kubeHomeDir}}"
+  shell: |
+    kubectl config set-cluster {{clusterName}} \
+      --certificate-authority=certs/kubernetes-ca.pem \
+      --embed-certs=true \
+      --server={{apiEndpoint}} \
+      --kubeconfig=kubelet/{{ansible_default_ipv4.address}}.kubeconfig && \
+    kubectl config set-credentials system:node:{{ansible_default_ipv4.address}} \
+      --client-certificate=certs/{{ansible_default_ipv4.address}}.pem \
+      --client-key=certs/{{ansible_default_ipv4.address}}-key.pem \
+      --embed-certs=true \
+      --kubeconfig=kubelet/{{ansible_default_ipv4.address}}.kubeconfig && \
+    kubectl config set-context default \
+      --cluster={{clusterName}} \
+      --user=system:node:{{ansible_default_ipv4.address}} \
+      --kubeconfig=kubelet/{{ansible_default_ipv4.address}}.kubeconfig && \
+    kubectl config use-context default --kubeconfig=kubelet/{{ansible_default_ipv4.address}}.kubeconfig
+  notify:
+  - restart kubelet
+
+- name: create kubelet-configuration.yaml file to "{{kubeHomeDir}}/kubelet/kubelet-configuration.yaml"
+  template:
+    src: "kubelet-configuration.yaml.j2"
+    dest: "{{kubeHomeDir}}/kubelet/kubelet-configuration.yaml"
+    mode: 400
+    owner: root
+  notify:
+  - restart kubelet
+
+- name: create {{serviceName}} systemd unit files
+  template:
+    src: "{{serviceName}}.service.j2"
+    dest: "/etc/systemd/system/{{serviceName}}.service"
+    mode: 0644
+    backup: yes
+  notify:
+  - reload units
+  - restart {{serviceName}}
+
+- name: start and enable {{serviceName}} service
+  systemd:
+    name: "{{serviceName}}"
+    enabled: yes
+    state: started
+    daemon-reload: yes

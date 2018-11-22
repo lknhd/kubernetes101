@@ -1,0 +1,6 @@
+---
+- include: secure-etcd.yaml
+  when: secure
+
+- include: insecure-etcd.yaml
+  when: not secure

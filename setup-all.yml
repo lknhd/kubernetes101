@@ -1,0 +1,141 @@
+---
+# initial setup
+- hosts: "all"
+  become: yes
+  gather_facts: yes
+  tasks:
+  - name: Install important packages
+    apt:
+      pkg:
+      - ntp
+      - vim
+      - htop
+      - ipcalc
+      - ethtool
+      - nmon
+      state: present
+  - name: make sure ntp service is running
+    service: name=ntp enabled=yes state=started
+  - name: reduce log rotate num as we usually use small vm for this
+    vars:
+      rotate_num: 2
+    template:
+      src: logrotate.rsyslog.j2
+      dest: /etc/logrotate.d/rsyslog
+
+# install docker on controllers and workers
+- hosts: controller, worker
+  become: yes
+  gather_facts: no
+  roles:
+  - role: docker-engine
+    tags:
+    - docker
+
+# generate certificates
+- hosts: etcd,controller,worker
+  become: no
+  gather_facts: no
+  roles:
+  - role: generate-certificates
+    tags:
+    - certificate
+
+# setup etcd cluster
+- hosts: etcd
+  become: yes
+  gather_facts: no
+  vars:
+    secure: true
+  roles:
+  - role: etcd
+    tags: 
+    - etcd
+
+# setup calico-node on controllers and workers
+- hosts: controller,worker
+  become: yes
+  gather_facts: no
+  roles:
+  - role: calico-node
+    tags:
+    - calico
+
+# setup controller nodes
+- hosts: controller
+  become: yes
+  gather_facts: no
+  roles:
+  - role: controller
+    tags:
+    - controller
+
+# generate kubernetes addons, run it to one controller node only
+- hosts: controller
+  become: yes
+  gather_facts: no
+  run_once: true
+  roles:
+  - role: kube-addons
+    tags:
+    - addons
+
+# get kubeconfig for admin
+- import_playbook: kubeconfig-admin.yml
+  tags:
+  - kubeconfig
+
+# setup workers
+- hosts: worker
+  become: yes
+  gather_facts: no
+  vars:
+    cert: "{{ansible_default_ipv4.address}}.pem"
+    key: "{{ansible_default_ipv4.address}}-key.pem"
+  roles:
+  - role: worker
+    tags:
+    - worker
+
+# reboot worker then uncordon
+- hosts: worker
+  become: yes
+  gather_facts: no
+  tags:
+  - reboot-worker
+  vars:
+    KUBECONFIG: files/kubernetes/admin.kubeconfig
+  tasks:
+  - name: Reboot the server and wait for it to come back up.
+    reboot:
+      reboot_timeout: 300
+  - name: uncordon nodes
+    delegate_to: 127.0.0.1
+    shell: "kubectl uncordon {{ansible_default_ipv4.address}}"
+    environment:
+      KUBECONFIG: "{{KUBECONFIG}}"
+
+- hosts: "localhost"
+  become: no
+  gather_facts: no
+  vars:
+    KUBECONFIG: files/kubernetes/admin.kubeconfig
+  tags:
+  - viewer
+  tasks:
+  - name: create viewer service account and its cluster role
+    shell: 'kubectl apply -f files/viewer-rbac.yml'
+    environment:
+      KUBECONFIG: "{{KUBECONFIG}}"
+  - name: get viewer token
+    shell: 'kubectl get -o yaml secret $(kubectl get sa viewer -o jsonpath="{.secrets[0].name}") -o jsonpath="{.data.token}" | base64 --decode'
+    environment:
+      KUBECONFIG: "{{KUBECONFIG}}"
+    register: viewer_token
+  - debug:
+      msg: "{{viewer_token.stdout}}" 
+
+# install zsh shell on controller
+#- import_playbook: other.zsh.yml
+#  tags:
+#  - zsh

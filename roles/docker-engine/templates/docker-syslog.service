@@ -1,0 +1,32 @@
+[Unit]
+Description=Docker Application Container Engine
+Documentation=https://docs.docker.com
+After=network.target docker.socket
+Requires=docker.socket
+
+[Service]
+Type=notify
+EnvironmentFile=-/etc/default/docker
+# the default is not to use systemd for cgroups because the delegate issues still
+# exists and systemd currently does not support the cgroup feature set required
+# for containers run by docker
+ExecStartPre=/bin/sh -x -c "if [ ! -s /var/lib/docker/repositories-overlay ]; then rm -f /var/lib/docker/repositories-overlay; fi"
+ExecStart=/usr/bin/docker daemon -s {{ docker_storage_driver }}   -p /var/run/docker.pid \
+  --host=fd:// \
+  --iptables=false \
+  --ip-masq=false \
+  --log-level=warn \
+  --log-driver=syslog \
+  --log-opt syslog-address=tcp://172.16.72.145:5544 \
+  --log-opt tag={{ '{{' }}.Name{{ '}}' }} \
+
+MountFlags=slave
+LimitNOFILE={{ docker_LimitNOFILE }}
+LimitNPROC={{ docker_LimitNPROC }}
+LimitCORE=infinity
+TimeoutStartSec=0
+# set delegate yes so that systemd does not reset the cgroups of docker containers
+Delegate=yes
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,24 @@
+---
+- hosts: "{{hosts}}"
+  become: yes
+  gather_facts: yes
+
+  tasks:
+  - name: Ensure ntp is installed
+    apt:
+      name: "{{item}}"
+      state: present
+    with_items:
+    - ntp
+    - vim
+    - htop
+  
+  - name: make sure ntp service is running
+    service: name=ntp enabled=yes state=started
+
+  - name: reduce log rotate num as we usually use small vm for this
+    vars:
+      rotate_num: 2
+    template:
+      src: logrotate.rsyslog.j2
+      dest: /etc/logrotate.d/rsyslog

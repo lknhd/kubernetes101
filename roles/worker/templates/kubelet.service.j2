@@ -1,0 +1,38 @@
+[Unit]
+Description=Kubernetes Kubelet
+Documentation=https://github.com/GoogleCloudPlatform/kubernetes
+After=docker.service
+Requires=docker.service
+
+[Service]
+ExecStartPre=/bin/chmod 544 {{kubeHomeDir}}/bin/kubelet
+ExecStart={{kubeHomeDir}}/bin/kubelet \
+  --config={{kubeHomeDir}}/kubelet/kubelet-configuration.yaml \
+  \
+  --allow-privileged=true \
+  --anonymous-auth=true \
+  --authorization-mode="AlwaysAllow" \
+  \
+  --register-node=true \
+  --hostname-override={{ansible_default_ipv4.address}} \
+  --node-labels="{{nodeLabels}}" \
+  --register-schedulable=false \
+  --read-only-port=10255 \
+  --container-runtime=docker \
+  \
+  --network-plugin=cni \
+  --cni-bin-dir={{kubeHomeDir}}/bin \
+  --cni-conf-dir={{kubeHomeDir}}/cni \
+  \
+  --kubeconfig={{kubeHomeDir}}/kubelet/{{ansible_default_ipv4.address}}.kubeconfig \
+  --root-dir={{kubeHomeDir}}/kubelet \
+  --experimental-allowed-unsafe-sysctls 'net.core.somaxconn'\
+  --v=2
+
+Restart=always
+RestartSec=10
+LimitNPROC=1000000
+LimitNOFILE=1000000
+
+[Install]
+WantedBy=multi-user.target

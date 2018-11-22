@@ -1,0 +1,23 @@
+- name: generate kubelet csr
+  delegate_to: 127.0.0.1
+  template:
+   src: "worker-csr.json"
+   dest: "files/kubernetes/{{ ansible_default_ipv4.address }}-csr.json"
+  tags:
+  - kubelet
+
+- name: generate kubelet certs
+  delegate_to: 127.0.0.1
+  args:
+   chdir: "files"
+  shell: |
+   cfssl gencert \
+   -ca=kubernetes/kubernetes-ca.pem \
+   -ca-key=kubernetes/kubernetes-ca-key.pem \
+   -config=ca-config.json \
+   -profile=kubelet \
+   -hostname={{ansible_default_ipv4.address}} \
+   kubernetes/{{ ansible_default_ipv4.address }}-csr.json | cfssljson -bare kubernetes/{{ansible_default_ipv4.address}}
+  tags:
+  - kubelet
+

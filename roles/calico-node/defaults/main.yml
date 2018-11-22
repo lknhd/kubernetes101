@@ -1,0 +1,5 @@
+---
+calico_node_version: v1.1.0
+calico_version: v1.1.0
+ETCD_SCHEME: http
+generateIpPool: false

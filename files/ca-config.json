@@ -1,0 +1,25 @@
+{
+  "signing": {
+    "default": {
+      "expiry": "2160h"
+    },
+    "profiles": {
+      "kubernetes": {
+        "usages": ["signing", "key encipherment", "server auth", "client auth"],
+        "expiry": "2160h"
+      },
+      "etcd-server": {
+        "usages": ["signing", "key encipherment", "server auth", "client auth"],
+        "expiry": "2160h"
+      },
+      "etcd-client": {
+        "usages": ["client auth"],
+        "expiry": "21600h"
+      },
+      "kubelet": {
+        "usages": ["signing", "key encipherment", "server auth", "client auth"],
+        "expiry": "2160h"
+      }
+    }
+  }
+}

@@ -1,0 +1,31 @@
+[Unit]
+Description=calico-node
+After=docker.service
+Requires=docker.service
+
+[Service]
+ExecStartPre=-/usr/bin/docker rm -f calico-node
+ExecStart=/usr/bin/docker run --net=host --privileged --name=calico-node \
+  --log-driver=json-file \
+  -e NODENAME={{ansible_hostname}} \
+  -e IP={{ansible_default_ipv4.address}} \
+  -e CALICO_NETWORKING_BACKEND=true \
+  -e IP6= \
+  -e AS={{asNum}} \
+  -e ETCD_ENDPOINTS={{etcdEndpoints}} \
+  -e ETCD_CA_CERT_FILE={{kubeHomeDir}}/certs/etcd-ca.pem \
+  -e ETCD_CERT_FILE={{kubeHomeDir}}/certs/etcd-client.pem \
+  -e ETCD_KEY_FILE={{kubeHomeDir}}/certs/etcd-client-key.pem \
+  -v /var/log/calico:/var/log/calico \
+  -v {{kubeHomeDir}}:{{kubeHomeDir}} \
+  -v /run/docker/plugins:/run/docker/plugins \
+  -v /lib/modules:/lib/modules \
+  -v /var/run/calico:/var/run/calico \
+  {{calicoNodeImage}}
+
+ExecStop=-/usr/bin/docker stop calico-node
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

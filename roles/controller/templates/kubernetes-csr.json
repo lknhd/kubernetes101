@@ -1,0 +1,24 @@
+{
+  "CN": "system:node:{{ansible_default_ipv4.address}}",
+  "hosts": [
+    "{{ansible_default_ipv4.address}}",
+    "kubernetes",
+    "kubernetes.default",
+    "kubernetes.default.svc",
+    "{{kubeServiceIP.stdout}}",
+    "127.0.0.1"
+  ],
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "ID",
+      "L": "AWS",
+      "O": "system:nodes",
+      "OU": "Kubernetes Cluster",
+      "ST": "Jakarta"
+    }
+  ]
+}

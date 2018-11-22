@@ -1,0 +1,8 @@
+- hosts: etcd
+  become: yes
+  gather_facts: yes
+  vars:
+    secure: true
+ 
+  roles:
+  - etcd

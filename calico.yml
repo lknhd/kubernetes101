@@ -1,0 +1,13 @@
+- hosts: etcd
+  gather_facts: yes
+
+- hosts: "{{ hosts }}"
+  become: yes
+  gather_facts: yes
+  roles:
+  - role: docker-engine
+    tags:
+    - docker
+  - role: calico-node
+    tags:
+    - calico

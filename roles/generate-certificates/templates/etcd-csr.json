@@ -1,0 +1,16 @@
+{
+  "CN": "etcd",
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "ID",
+      "L": "Jakarta Selatan",
+      "O": "Bukalapak",
+      "OU": "System Engineer",
+      "ST": "DKI Jakarta"
+    }
+  ]
+}

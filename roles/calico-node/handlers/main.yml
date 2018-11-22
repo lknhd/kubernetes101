@@ -1,0 +1,8 @@
+---
+- name: reload units
+  shell: systemctl daemon-reload
+
+- name: restart calico-node
+  shell: systemctl restart {{item}}
+  with_items:
+  - calico-node

@@ -1,0 +1,9 @@
+---
+docker_engine_version: 1.11.2-0~jessie
+docker_engine_cache_valid_time: 84600
+docker_engine_release_channel: stable
+docker_storage_driver: overlay
+docker_log_driver: json-file
+docker_LimitNOFILE: 1048576
+docker_LimitNPROC: 1048576
+updateDockerSystemd: false

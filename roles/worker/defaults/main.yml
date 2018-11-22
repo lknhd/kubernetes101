@@ -1,0 +1,4 @@
+---
+cordonNode: false
+LimitNPROC: 1000000
+LimitNOFILE: 1000000

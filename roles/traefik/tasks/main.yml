@@ -1,0 +1,62 @@
+- name: create directories
+  file: path={{item}} state=directory
+  with_items:
+  - "{{traefikHomeDir}}"
+  - "{{traefikLogDir}}"
+
+- name: download traefik-{{traefikVersion}} binary
+  get_url:
+    url: "https://github.com/containous/traefik/releases/download/{{ traefikVersion }}/traefik_linux-amd64"
+    dest: "/tmp/traefik_linux-amd64-{{ traefikVersion }}"
+
+- name: install traefik-{{traefikVersion}} binary to /usr/local/bin/traefik
+  copy:
+    src: "/tmp/traefik_linux-amd64-{{ traefikVersion }}"
+    dest: /usr/local/bin/traefik
+    remote_src: True
+    mode: 0544
+    owner: root
+  notify:
+  - restart traefik
+
+- name: copy kubernetes ca certificate
+  copy:
+   src: "kubernetes/kubernetes-ca.pem"
+   dest: "{{traefikHomeDir}}/"
+  notify:
+  - restart traefik
+
+- name: create traefik configuration at '{{ traefikHomeDir }}/traefik.toml'
+  template:
+    src: "traefik.toml.j2"
+    dest: "{{ traefikHomeDir }}/traefik.toml"
+    mode: 755
+    owner: root
+  notify:
+  - restart traefik
+
+- name: create traefik systemd unit files
+  template:
+    src: "traefik.service.j2"
+    dest: "/etc/systemd/system/traefik.service"
+    mode: 0644
+    backup: yes
+  notify:
+  - restart traefik
+
+- name: create traefik logrotate file
+  template:
+    src: traefik.logrotate.j2
+    dest: /etc/logrotate.d/traefik
+
+- name: create sysctl.conf file
+  template:
+    src: sysctl.conf
+    dest: /etc/sysctl.conf
+
+- name: start and enable traefik service
+  systemd:
+    name: "traefik"
+    enabled: yes
+    state: started
+    daemon-reload: yes

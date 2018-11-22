@@ -1,0 +1,16 @@
+---
+# gather facts for vars on etcd nodes
+- hosts: etcd
+  gather_facts: yes
+
+- hosts: "{{hosts}}"
+  become: yes
+  gather_facts: yes
+  vars:
+   cert: "{{ansible_default_ipv4.address}}.pem"
+   key: "{{ansible_default_ipv4.address}}-key.pem"
+
+  roles:
+  - docker-engine
+  - calico-node
+  - worker

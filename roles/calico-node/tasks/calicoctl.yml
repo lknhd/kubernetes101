@@ -1,0 +1,13 @@
+---
+############ Calicoctl #########################
+- name: install calicoctl binary
+  get_url:
+    url: "{{repoSyseng}}/binaries/calicoctl/{{calicoctlVersion}}/calicoctl"
+    dest: /usr/bin/calicoctl
+    mode: 0755
+    owner: root
+
+- name: create calicoctl configuration
+  template:
+    src: calicoctl.cfg.j2
+    dest: /etc/calico/calicoctl.cfg

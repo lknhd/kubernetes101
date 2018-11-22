@@ -1,0 +1,41 @@
+- name: instal Calico Binaries version {{calicoVersion}}
+  get_url:
+    url: "{{repoSyseng}}/binaries/calico/{{calicoVersion}}/{{item}}"
+    dest: "{{kubeHomeDir}}/bin/"
+    mode: 0755
+    owner: root
+  with_items:
+  - calico
+  - calico-ipam
+  notify:
+  - restart kubelet
+
+- name: instal CNI Binaries version {{cniVersion}}
+  get_url:
+    url: "{{repoSyseng}}/binaries/cni/{{cniVersion}}/{{item}}"
+    dest: "{{kubeHomeDir}}/bin/"
+    mode: 0755
+    owner: root
+  with_items:
+  - bridge
+  - cnitool
+  - dhcp
+  - flannel
+  - host-local
+  - ipvlan
+  - loopback
+  - macvlan
+  - ptp
+  - tuning
+  notify:
+  - restart kubelet
+
+- name: create calico network plugin configuration
+  template:
+    src: 10-calico.conf.j2
+    dest: "{{kubeHomeDir}}/cni/10-calico.conf"
+    mode: 0644
+    owner: root
+    backup: yes
+  notify:
+  - restart kubelet

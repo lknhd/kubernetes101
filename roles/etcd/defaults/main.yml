@@ -1,0 +1,11 @@
+---
+secure: false
+cluster_state: new
+etcd_port: 2379
+etcd_peer_port: 2380
+etcd_dir: /etc/etcd
+cert_filename: etcd.pem
+key_filename: etcd-key.pem
+ca_filename: ca.pem
+LimitNPROC: 1000000
+LimitNOFILE: 1000000

@@ -1,0 +1,19 @@
+[Unit]
+Description=Kubernetes Kube Proxy
+Documentation=https://github.com/GoogleCloudPlatform/kubernetes
+
+[Service]
+ExecStart={{ kubeHomeDir }}/bin/kube-proxy \
+  --cluster-cidr={{podCidr}} \
+  --masquerade-all=false \
+  --hostname-override={{ansible_default_ipv4.address}} \
+  --kubeconfig={{kubeHomeDir}}/kubelet/kube-proxy.kubeconfig \
+  --conntrack-min=1000000 \
+  --proxy-mode=ipvs \
+  --v=2
+
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

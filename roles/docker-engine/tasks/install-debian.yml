@@ -1,0 +1,28 @@
+---
+- name: install important packages
+  apt:
+    pkg:
+    - apt-transport-https
+    - ca-certificates
+    - gnupg2
+    - apparmor
+    update_cache: yes
+    cache_valid_time: "{{ docker_engine_cache_valid_time }}"
+
+- name: add docker-engine apt key
+  apt_key:
+    keyserver: hkp://p80.pool.sks-keyservers.net:80
+    id: 58118E89F3A912897C070ADBF76221572C52609D
+    state: present
+
+- name: add docker repository
+  apt_repository:
+    repo: 'deb https://apt.dockerproject.org/repo debian-{{ ansible_distribution_release }} main'
+    filename: docker
+    update_cache: yes
+
+- name: install docker-engine {{ docker_engine_version }}
+  apt:
+    pkg: docker-engine={{ docker_engine_version }}
+    update_cache: yes
+    cache_valid_time: "{{ docker_engine_cache_valid_time }}"

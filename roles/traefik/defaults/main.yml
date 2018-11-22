@@ -1,0 +1,4 @@
+---
+traefikHomeDir: /etc/traefik
+traefikLogDir: /var/log/traefik
+logrotateCount: 5

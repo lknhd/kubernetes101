@@ -1,0 +1,9 @@
+[controller]
+
+[etcd]
+
+[worker]
+
+[kube:children]
+controller
+worker

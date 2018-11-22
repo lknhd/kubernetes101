@@ -1,0 +1,11 @@
+/var/log/traefik/access.log {
+        daily
+        missingok
+        rotate {{logrotateCount}}
+        compress
+        notifempty
+        sharedscripts
+        postrotate
+          systemctl kill -s USR1 traefik
+        endscript
+}

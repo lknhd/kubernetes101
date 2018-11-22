@@ -1,0 +1,13 @@
+---
+# etcd
+etcdHomeDir: /etc/etcd
+etcdCAConfig: ca-config.json
+etcdCACert: etcd-ca.pem
+etcdCAKey: etcd-ca-key.pem
+serviceIpRange: 10.193.0.0/17
+
+etcdVersion: v3.2.2
+initialClusterState: new
+initialClusterToken: fe182105676feb5ecb5a66e4cab15995
+etcdDataDir: /var/lib/etcd
+etcdEndpoints: "{% for node in groups['etcd'] %}http://{{ hostvars[node].ansible_eth0.ipv4.address }}:2379{% if not loop.last %},{% endif %}{% endfor %}"

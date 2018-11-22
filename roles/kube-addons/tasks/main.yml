@@ -1,0 +1,52 @@
+---
+- name: create addons directory
+  file:
+    path: "{{kubeHomeDir}}/addons/"
+    state: directory
+  
+- name: "generate {{addon}}"
+  vars:
+    addon: kubernetes-dashboard
+    replicas: 2
+  template:
+    src: "{{addon}}.yaml"
+    dest: "{{kubeHomeDir}}/addons/{{addon}}.yaml"
+
+- name: "generate {{addon}}"
+  vars:
+    addon: kube-dns
+    replicas: 2
+  template:
+    src: "{{addon}}.yaml.j2"
+    dest: "{{kubeHomeDir}}/addons/{{addon}}.yaml"
+
+- name: "generate {{addon}}"
+  vars:
+    addon: heapster
+    replicas: 2
+  template:
+    src: "{{addon}}.yaml.j2"
+    dest: "{{kubeHomeDir}}/addons/{{addon}}.yaml"
+
+- name: "generate {{addon}}"
+  vars:
+    addon: node-exporter
+  template:
+    src: "{{addon}}.yaml.j2"
+    dest: "{{kubeHomeDir}}/addons/{{addon}}.yaml"
+
+- name: "generate {{addon}}"
+  vars:
+    addon: alpine
+    namespace: monitoring
+  template:
+    src: "{{addon}}.yaml.j2"
+    dest: "{{kubeHomeDir}}/addons/{{addon}}.yaml"
+
+- name: Wait 300 seconds for port 8080 (kube-apiserver) to become open on the host
+  wait_for:
+    port: 8080
+    timeout: 300
+
+- name: deploy all addons
+  shell: "kubectl apply -f {{kubeHomeDir}}/addons/."

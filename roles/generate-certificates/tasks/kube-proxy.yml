@@ -1,0 +1,24 @@
+- name: generate kube-proxy csr
+  delegate_to: 127.0.0.1
+  run_once: true
+  template:
+   src: "proxy-csr.json"
+   dest: "files/kubernetes/kube-proxy-csr.json"
+  tags:
+  - kube-proxy
+
+- name: generate kube-proxy certs
+  delegate_to: 127.0.0.1
+  run_once: true
+  args:
+   chdir: "files"
+  shell: |
+   cfssl gencert \
+   -ca=kubernetes/kubernetes-ca.pem \
+   -ca-key=kubernetes/kubernetes-ca-key.pem \
+   -config=ca-config.json \
+   -profile=kubelet \
+   -hostname={{ansible_default_ipv4.address}} \
+   kubernetes/kube-proxy-csr.json | cfssljson -bare kubernetes/kube-proxy
+  tags:
+  - kube-proxy

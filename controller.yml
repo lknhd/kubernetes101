@@ -1,0 +1,24 @@
+# gather facts for vars on etcd nodes
+- hosts: etcd
+  gather_facts: yes
+
+# run play on controller nodes
+- hosts: controller
+  become: yes
+  gather_facts: yes
+  roles:
+  - docker-engine
+  - role: calico-node
+    tags:
+    - calico
+  - controller
+
+# generate kubernetes addons, run it to one controller node only
+- hosts: controller[0]
+  become: yes
+  gather_facts: yes
+  serial: 1
+  roles:
+  - role: kube-addons
+    tags:
+    - addons

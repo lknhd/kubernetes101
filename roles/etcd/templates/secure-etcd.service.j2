@@ -1,0 +1,30 @@
+[Unit]
+Description=etcd
+Documentation=https://github.com/coreos
+
+[Service]
+Type=notify
+ExecStart=/usr/local/bin/etcd \
+  --name {{ansible_default_ipv4.address}} \
+  --cert-file={{ etcdHomeDir }}/ssl/etcd.pem \
+  --key-file={{ etcdHomeDir }}/ssl/etcd-key.pem \
+  --peer-cert-file={{ etcdHomeDir }}/ssl/etcd.pem \
+  --peer-key-file={{ etcdHomeDir }}/ssl/etcd-key.pem \
+  --trusted-ca-file={{ etcdHomeDir }}/ssl/etcd-ca.pem \
+  --peer-trusted-ca-file={{ etcdHomeDir }}/ssl/etcd-ca.pem \
+  --peer-client-cert-auth \
+  --client-cert-auth \
+  --initial-advertise-peer-urls https://{{ansible_default_ipv4.address}}:2380 \
+  --listen-peer-urls https://{{ansible_default_ipv4.address}}:2380 \
+  --listen-client-urls https://{{ansible_default_ipv4.address}}:2379,https://127.0.0.1:2379 \
+  --advertise-client-urls https://{{ansible_default_ipv4.address}}:2379 \
+  --initial-cluster-token {{ initialClusterToken }} \
+  --initial-cluster {% for node in groups['etcd'] %}{{ node }}=https://{{ hostvars[node].ansible_default_ipv4.address }}:2380{% if not loop.last %},{% endif %}{% endfor %} \
+  --initial-cluster-state {{ initialClusterState }} \
+  --data-dir={{ etcdDataDir }}
+
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

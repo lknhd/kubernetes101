@@ -1,0 +1,14 @@
+---
+- name: reload units
+  shell: systemctl daemon-reload
+
+- name: restart docker
+  shell: systemctl restart docker
+
+- name: flush iptables
+  iptables:
+    table: "{{ item }}"
+    flush: true
+  with_items:
+  - nat
+  - filter

@@ -1,0 +1,16 @@
+{
+  "CN": "admin",
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "ID",
+      "L": "AWS",
+      "O": "system:masters",
+      "OU": "Kubernetes Cluster",
+      "ST": "Jakarta"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+############ Peering with router ########################
+- name: create bgppeer yaml configuration
+  template: 
+    src: "BGPpeer.yml.j2"
+    dest: "{{kubeHomeDir}}/bgppeer-{{item}}.yml"
+  with_items:
+  - 172.16.90.2
+  - 172.16.90.3
+  when: bgpPeering
+  tags: bgpPeering
+
+- name: bgp peering node-router
+  shell: /usr/bin/calicoctl create -f {{kubeHomeDir}}/bgppeer-{{item}}.yml
+  with_items:
+  - 172.16.90.2
+  - 172.16.90.3
+  ignore_errors: yes
+  when: bgpPeering
+  tags: bgpPeering

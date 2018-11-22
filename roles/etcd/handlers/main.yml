@@ -1,0 +1,6 @@
+---
+- name: reload units
+  shell: systemctl daemon-reload
+
+- name: restart etcd
+  shell: systemctl restart etcd

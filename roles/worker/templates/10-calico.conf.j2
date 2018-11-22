@@ -1,0 +1,15 @@
+{
+    "name": "calico-k8s-network",
+    "type": "calico",
+    "etcd_endpoints": "{{etcdEndpoints}}",
+    "log_level": "warn",
+    "ipam": {
+        "type": "calico-ipam"
+    },
+    "etcd_ca_cert_file": "{{kubeHomeDir}}/certs/etcd-ca.pem",
+    "etcd_cert_file": "{{kubeHomeDir}}/certs/etcd-client.pem",
+    "etcd_key_file": "{{kubeHomeDir}}/certs/etcd-client-key.pem",
+    "kubernetes": {
+        "kubeconfig": "{{kubeHomeDir}}/kubelet/{{ansible_default_ipv4.address}}.kubeconfig"
+    }
+}

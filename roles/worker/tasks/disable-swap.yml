@@ -1,0 +1,33 @@
+---
+- name: swap | check current swap status
+  shell: swapon -s
+  register: swap
+  tags: disable-swap
+
+- name: set fact
+  set_fact:
+    swap_is_on: true
+  when: swap.stdout != ""
+  tags: disable-swap
+
+
+- name: set fact
+  set_fact:
+    swap_is_on: false
+  when: swap.stdout == ""
+  tags: disable-swap
+
+- name: swap | comment out swap partition on /etc/fstab
+  replace:
+    path: /etc/fstab
+    regexp: '^UUID=(\S+\s+none\s+swap\s+\S+\s+\d+\s+\d)'
+    replace: '# UUID=\1'
+  when: disable_swap
+  tags: disable-swap
+
+- name: swap | disable swap
+  command: swapoff --all
+  ignore_errors: yes
+  when: disable_swap and swap_is_on
+  tags: disable-swap
+

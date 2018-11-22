@@ -1,0 +1,37 @@
+defaultEntryPoints = ["http"]
+
+[kubernetes]
+endpoint = "{{apiEndpoint}}"
+certAuthFilePath = "{{traefikHomeDir}}/kubernetes-ca.pem"
+token = "{{traefikToken}}"
+
+[entryPoints]
+  [entryPoints.http]
+  address = ":80"
+  [entryPoints.traefik]
+  address = ":81"
+
+[accessLog]
+filePath = "{{traefikLogDir}}/access.log"
+#format = "json"
+format = "common"
+bufferingSize = 10000
+
+[respondingTimeouts]
+readTimeout = "5s"
+writeTimeout = "5s"
+idleTimeout = "360s"
+
+[forwardingTimeouts]
+dialTimeout = "500ms"
+responseHeaderTimeout = "5s"
+
+[metrics]
+  [metrics.prometheus]
+
+[ping]
+entryPoint = "traefik"
+
+[api]
+entryPoint = "traefik"
+dashboard = true

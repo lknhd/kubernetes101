@@ -1,0 +1,9 @@
+- hosts: "{{ hosts }}"
+  become: yes
+  gather_facts: no
+  vars:
+    traefikVersion: v1.7.4
+  roles:
+  - role: traefik
+    tags:
+    - traefik

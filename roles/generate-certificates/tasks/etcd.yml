@@ -1,0 +1,32 @@
+- name: generate etcd csr
+  delegate_to: 127.0.0.1
+  run_once: true
+  template:
+   src: "etcd-csr.json"
+   dest: "files/etcd/etcd-csr.json"
+
+- name: generate etcd server certs
+  delegate_to: 127.0.0.1
+  args:
+   chdir: "files"
+  shell: |
+   cfssl gencert \
+   -ca=etcd/etcd-ca.pem \
+   -ca-key=etcd/etcd-ca-key.pem \
+   -config=ca-config.json \
+   -profile=etcd-server \
+   -hostname=127.0.0.1,{{ansible_default_ipv4.address}} \
+   etcd/etcd-csr.json | cfssljson -bare etcd/{{ansible_default_ipv4.address}}-etcd
+
+- name: generate etcd client certs
+  delegate_to: 127.0.0.1
+  run_once: true
+  args:
+   chdir: "files"
+  shell: |
+   cfssl gencert \
+   -ca=etcd/etcd-ca.pem \
+   -ca-key=etcd/etcd-ca-key.pem \
+   -config=ca-config.json \
+   -profile=etcd-client \
+   etcd/etcd-csr.json | cfssljson -bare etcd/etcd-client

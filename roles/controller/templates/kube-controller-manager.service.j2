@@ -1,0 +1,29 @@
+[Unit]
+Description=Kubernetes Controller Manager
+Documentation=https://github.com/GoogleCloudPlatform/kubernetes
+
+[Service]
+ExecStartPre=/bin/chmod 544 {{kubeHomeDir}}/bin/kube-controller-manager
+ExecStart={{kubeHomeDir}}/bin/kube-controller-manager \
+  --leader-elect=true \
+  --master=http://127.0.0.1:8080 \
+  \
+  --cluster-name={{clusterName}} \
+  --address=0.0.0.0 \
+  --allocate-node-cidrs=true \
+  --cluster-cidr={{podCidr}} \
+  --service-cluster-ip-range={{serviceIpRange}} \
+  \
+  --cluster-signing-cert-file={{kubeHomeDir}}/certs/{{caCert}} \
+  --cluster-signing-key-file={{kubeHomeDir}}/certs/{{caKey}} \
+  --root-ca-file={{kubeHomeDir}}/certs/{{caCert}} \
+  --service-account-private-key-file={{kubeHomeDir}}/certs/{{caKey}} \
+  --v=2
+
+Restart=on-failure
+RestartSec=5
+LimitNPROC={{LimitNPROC}}
+LimitNOFILE={{LimitNOFILE}}
+
+[Install]
+WantedBy=multi-user.target

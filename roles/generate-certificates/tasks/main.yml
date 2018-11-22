@@ -1,0 +1,9 @@
+- include: etcd.yml
+  tags: etcd
+- include: controller.yml
+  tags: controller
+- include: kubelet.yml
+  tags: kubelet
+- include: kube-proxy.yml
+  tags: kube-proxy
+

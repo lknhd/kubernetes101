@@ -1,0 +1,9 @@
+---
+- name: reload units
+  shell: systemctl daemon-reload
+
+- name: restart kubelet
+  shell: systemctl restart kubelet
+
+- name: restart kube-proxy
+  shell: systemctl restart kube-proxy

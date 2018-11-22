@@ -1,0 +1,24 @@
+{
+  "CN": "kubernetes",
+  "hosts": [
+    "{{ansible_default_ipv4.address}}",
+    "kubernetes",
+    "kubernetes.default",
+    "kubernetes.default.svc",
+    "{{kubeServiceIP.stdout}}",
+    "127.0.0.1"
+  ],
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "ID",
+      "L": "Jakarta Selatan",
+      "O": "Bukalapak",
+      "OU": "System Engineer",
+      "ST": "DKI Jakarta"
+    }
+  ]
+}

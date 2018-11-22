@@ -1,0 +1,55 @@
+---
+- name: install dependency
+  apt:
+    pkg:
+    - conntrack
+    - socat
+    - ipset
+    state: latest
+
+- name: create directories
+  file: path={{item}} state=directory
+  with_items:
+  - "{{ kubeHomeDir }}/certs"
+  - "{{ kubeHomeDir }}/bin"
+
+- name: copy certs to "{{ kubeHomeDir }}/certs"
+  copy: src=kubernetes/{{item}} dest={{ kubeHomeDir }}/certs
+  with_items:
+  - kubernetes-ca.pem
+  - kubernetes-ca-key.pem
+  notify:
+  - restart kube-apiserver
+  - restart kube-controller-manager
+
+- name: copy etcd client certs to "{{ kubeHomeDir }}/certs"
+  copy: src={{item}} dest={{ kubeHomeDir }}/certs
+  with_items:
+  - "{{etcdClientCACert}}"
+  - "{{etcdClientCert}}"
+  - "{{etcdClientKey}}"
+  notify:
+  - restart kube-apiserver
+
+- name: copy certs to "{{ kubeHomeDir }}/certs"
+  copy: 
+    src: "kubernetes/{{ansible_default_ipv4.address}}-{{item}}"
+    dest: "{{ kubeHomeDir }}/certs"
+  with_items:
+  - controller.pem
+  - controller-key.pem
+  notify:
+  - restart kube-apiserver
+
+- name: install kubectl {{ kubeVersion }} binaries to "/usr/bin"
+  get_url:
+    url: "https://storage.googleapis.com/kubernetes-release/release/{{ kubeVersion }}/bin/linux/amd64/{{ item }}"
+    dest: "/usr/bin"
+    mode: 0755
+    owner: root
+  with_items:
+  - kubectl
+
+- include: kube-apiserver.yml serviceName=kube-apiserver
+- include: kube-controller-manager.yml serviceName=kube-controller-manager
+- include: kube-scheduler.yml serviceName=kube-scheduler

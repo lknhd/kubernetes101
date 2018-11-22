@@ -1,0 +1,17 @@
+[Unit]
+Description=Traefik
+
+[Service]
+Type=notify
+ExecStart=/usr/local/bin/traefik \
+  --web \
+  --configFile=/etc/traefik/traefik.toml \
+  --logLevel=INFO
+
+Restart=always
+WatchdogSec=1s
+LimitNPROC=1000000
+LimitNOFILE=1000000
+
+[Install]
+WantedBy=multi-user.target

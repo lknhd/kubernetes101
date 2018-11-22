@@ -1,0 +1,6 @@
+files/*/*
+files/*/*
+files/*.pem
+files/*.csr
+inventories/hosts
+retries

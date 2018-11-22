@@ -1,0 +1,47 @@
+[Unit]
+Description=Kubernetes API Server
+Documentation=https://github.com/GoogleCloudPlatform/kubernetes
+
+[Service]
+ExecStartPre=/bin/chmod 544 {{kubeHomeDir}}/bin/kube-apiserver
+ExecStart={{kubeHomeDir}}/bin/kube-apiserver \
+  --admission-control=NamespaceLifecycle,LimitRanger,ServiceAccount,ResourceQuota \
+  --advertise-address={{ansible_default_ipv4.address}} \
+  --apiserver-count={{apiServerCount}} \
+  --service-cluster-ip-range={{serviceIpRange}} \
+  --service-node-port-range={{nodePortRange}} \
+  \
+  --bind-address=0.0.0.0 \
+  --insecure-bind-address=127.0.0.1 \
+  --allow-privileged=true \
+  --enable-swagger-ui=false \
+  \
+  --authorization-mode=Node,RBAC \
+  --runtime-config= \
+  \
+  --feature-gates=AdvancedAuditing=false \
+  --audit-log-maxage=30 \
+  --audit-log-maxbackup=3 \
+  --audit-log-maxsize=100 \
+  --audit-log-path=/var/log/kube-audit.log \
+  \
+  --kubelet-certificate-authority={{kubeHomeDir}}/certs/{{caCert}} \
+  --client-ca-file={{kubeHomeDir}}/certs/{{caCert}} \
+  --service-account-key-file={{kubeHomeDir}}/certs/{{caKey}} \
+  --tls-cert-file={{kubeHomeDir}}/certs/{{ansible_default_ipv4.address}}-{{cert}} \
+  --tls-private-key-file={{kubeHomeDir}}/certs/{{ansible_default_ipv4.address}}-{{key}} \
+  \
+  --etcd-servers={{etcdEndpoints}} \
+  --etcd-cafile={{kubeHomeDir}}/certs/etcd-ca.pem \
+  --etcd-certfile={{kubeHomeDir}}/certs/etcd-client.pem \
+  --etcd-keyfile={{kubeHomeDir}}/certs/etcd-client-key.pem \
+  \
+  --v=2
+
+Restart=on-failure
+RestartSec=5
+LimitNPROC=1000000
+LimitNOFILE=1000000
+
+[Install]
+WantedBy=multi-user.target

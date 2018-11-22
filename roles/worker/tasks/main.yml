@@ -1,0 +1,40 @@
+---
+- name: install dependencies
+  apt:
+    pkg:
+    - conntrack
+    - socat
+    - ethtool
+    - ipset
+    - ipvsadm
+    state: present
+
+- name: create directories
+  file: path={{item}} state=directory
+  with_items:
+  - "{{kubeHomeDir}}"
+  - "{{kubeHomeDir}}/certs"
+  - "{{kubeHomeDir}}/bin"
+  - "{{kubeHomeDir}}/cni"
+  - "{{kubeHomeDir}}/kubelet"
+
+- name: install kubectl-{{kubeVersion}} binaries to "/usr/bin"
+  get_url:
+    url: "https://storage.googleapis.com/kubernetes-release/release/{{ kubeVersion }}/bin/linux/amd64/kubectl"
+    dest: "/usr/bin"
+    mode: 0755
+    owner: root
+
+- name: tweak sysctl kernel.pid_max
+  sysctl:
+    name: kernel.pid_max
+    value: 4194303
+    sysctl_set: yes
+  tags: sysctl
+
+- include: disable-swap.yml
+- include: kubelet.yml serviceName=kubelet 
+  tags: kubelet
+- include: calico-cni.yml
+- include: kube-proxy.yml serviceName=kube-proxy
+  tags: kube-proxy

@@ -1,0 +1,9 @@
+---
+- name: purge old docker packages
+  apt:
+    name:
+    - docker.io
+    - lxc-docker
+    - docker
+    state: absent
+    purge: yes

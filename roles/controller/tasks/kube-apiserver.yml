@@ -1,0 +1,30 @@
+- name: "download {{serviceName}}-{{kubeVersion}} binary"
+  get_url:
+    url: "https://storage.googleapis.com/kubernetes-release/release/{{ kubeVersion }}/bin/linux/amd64/{{serviceName}}"
+    dest: "/tmp/{{serviceName}}-{{kubeVersion}}"
+
+- name: install {{serviceName}}-{{kubeVersion}} binaries to {{kubeHomeDir}}/bin/{{serviceName}}
+  copy:
+    src: "/tmp/{{serviceName}}-{{kubeVersion}}"
+    dest: "{{kubeHomeDir}}/bin/{{serviceName}}"
+    remote_src: True
+    mode: 0544
+    owner: root
+  notify:
+  - restart {{serviceName}}
+
+- name: create {{serviceName}} systemd unit
+  template:
+    src: "{{serviceName}}.service.j2"
+    dest: "/etc/systemd/system/{{serviceName}}.service"
+    mode: 0644
+    backup: yes
+  notify:
+  - restart {{serviceName}}
+
+- name: start and enable {{serviceName}} service
+  systemd:
+    name: "{{serviceName}}"
+    enabled: yes
+    state: started
+    daemon-reload: yes

@@ -1,0 +1,29 @@
+---
+- name: purge old docker packages
+  include: purge-apt.yml
+  when: ansible_pkg_mgr == "apt"
+
+- name: install docker-engine={{ docker_engine_version }} for debian
+  include: install-debian.yml
+
+- name: update docker systemd unit file
+  template: 
+    src: docker-{{docker_log_driver}}.service 
+    dest: /lib/systemd/system/docker.service
+    mode: 0644 
+    owner: root 
+    group: root
+    backup: yes
+  notify:
+  - flush iptables
+  - reload units
+  - restart docker
+  when: updateDockerSystemd
+  tags: systemd
+
+- name: start docker service
+  systemd:
+    name: docker
+    enabled: yes
+    state: started
+    daemon-reload: yes

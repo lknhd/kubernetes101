@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: calicoApiConfig
+metadata:
+spec:
+  datastoreType: "etcdv2"
+  etcdEndpoints: "{{etcdEndpoints}}"
+  etcdCACertFile: {{kubeHomeDir}}/certs/etcd-ca.pem
+  etcdCertFile: {{kubeHomeDir}}/certs/etcd-client.pem
+  etcdKeyFile: {{kubeHomeDir}}/certs/etcd-client-key.pem

@@ -1,0 +1,41 @@
+---
+- hosts: "controller"
+  become: yes
+  gather_facts: no
+
+  
+  tasks:
+  - name: install zsh
+    apt:
+      pkg:
+      - git
+      - zsh
+      - curl
+      state: latest
+  - name: get install script
+    get_url: 
+      url: https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh
+      dest: /tmp/zsh_install.sh
+      mode: 755
+  - name: install oh-my-zsh
+    shell: sh /tmp/zsh_install.sh 
+    args:
+      creates: /root/.oh-my-zsh
+  - name: change theme
+    replace:
+      path: /root/.oh-my-zsh/themes/robbyrussell.zsh-theme
+      regexp: '^PROMPT.*'
+      replace: 'PROMPT="%n@%m:%/%# "'
+  - name: tuning vim
+    lineinfile:
+      path: /etc/vim/vimrc
+      line: "{{ item }}"
+    loop:
+    - "set expandtab"
+    - "set shiftwidth=2"
+    - "set tabstop=2"
+  - name: create zshrc
+    template:
+      src: zshrc
+      dest: /root/.zshrc
+

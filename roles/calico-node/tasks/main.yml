@@ -1,0 +1,69 @@
+---
+- name: install dependency
+  apt:
+    pkg:
+    - python-pip
+    state: present
+
+- name: install docker-py
+  pip:
+    name: docker-py
+
+- name: create directories
+  file: path={{item}} state=directory
+  with_items:
+  - "{{kubeHomeDir}}"
+  - "{{kubeHomeDir}}/certs"
+  - /etc/calico
+
+- name: copy certs to "{{ kubeHomeDir }}/certs"
+  copy: src={{item}} dest={{ kubeHomeDir }}/certs
+  with_items:
+  - "{{etcdClientCACert}}"
+  - "{{etcdClientCert}}"
+  - "{{etcdClientKey}}"
+
+- name: pull calico-node image
+  docker_image:
+    name: "{{calicoNodeImage}}"
+ 
+- name: create systemd unit file
+  template: src={{item}}.service.j2 dest=/etc/systemd/system/{{item}}.service mode=0644 owner=root group=root
+  with_items:
+  - calico-node
+  notify:
+  - reload units
+  - restart calico-node
+
+- name: ensure calico-node service enabled and started
+  service: name={{item}} enabled=yes state=started
+  with_items:
+  - calico-node
+
+#- name: Wait 300 seconds for port 179 (bgp) to become open on the host, don't start checking for 30 seconds
+#  wait_for:
+#    port: 179
+#    delay: 30
+#    timeout: 300
+
+- include: calicoctl.yml
+
+- name: generate ippool config
+  template:
+    src: ippool.yml.j2
+    dest: /home/kubernetes/ippool.yml
+  when: generateIpPool
+
+- name: create new ippool
+  run_once: true
+  shell: calicoctl create -f /home/kubernetes/ippool.yml
+  ignore_errors: yes
+  when: generateIpPool
+
+- name: delete default ippool
+  run_once: true
+  shell: calicoctl delete ippool 192.168.0.0/16
+  ignore_errors: yes
+  when: generateIpPool
+
+# - include: bgp-peering.yml

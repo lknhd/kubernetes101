@@ -1,0 +1,50 @@
+---
+# basic
+repoDebian: http://deb.debian.org/debian
+repoSyseng: http://128.199.108.127/
+
+# misc
+disable_swap: false
+bgpPeering: false
+
+# certs
+caCert: kubernetes-ca.pem
+caKey: kubernetes-ca-key.pem
+cert: controller.pem
+key: controller-key.pem
+etcdClientCACert: etcd/etcd-ca.pem
+etcdClientCert: etcd/etcd-client.pem
+etcdClientKey: etcd/etcd-client-key.pem
+
+# docker
+docker_engine_version: '17.03.0~ce-0~debian-{{ ansible_distribution_release }}'
+docker_log_driver: json-file
+docker_storage_driver: overlay2
+
+# calico
+calicoNodeImage: quay.io/calico/node:v2.6.10
+asNum: 65432
+calicoctlVersion: v1.6.3
+calicoVersion: v1.11.4
+calicoEtcdEndpoints: "{% for node in groups['etcd'] %}https://{{ hostvars[node].ansible_default_ipv4.address }}:2379{% if not loop.last %},{% endif %}{% endfor %}"
+enableCalicoIpIp: true
+enableCalicoNat: true
+
+# kubernetes
+kubeVersion: v1.10.7
+cniVersion: v0.5.2
+kubeHomeDir: /home/kubernetes
+clusterName: kubernetes
+podCidr: 10.193.128.0/17
+serviceIpRange: 10.193.0.0/17
+kubednsServiceIp: 10.193.0.2
+apiServerCount: 3
+nodePortRange: 30000-32767
+clusterDns: '["{{kubednsServiceIp}}"]'
+clusterDomain: kube102.internal
+etcdEndpoints: "{% for node in groups['etcd'] %}https://{{ hostvars[node].ansible_default_ipv4.address }}:2379{% if not loop.last %},{% endif %}{% endfor %}"
+
+# api endpoint
+apiEndpoint: "https://<your-apiserver-internal-lb>:6443"
+apiEndpointPublic: "https://<your-apiserver-external-lb>:6443"
+traefikToken: ""

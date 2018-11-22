@@ -1,0 +1,23 @@
+[Unit]
+Description=etcd
+Documentation=http://github.com/coreos
+
+[Service]
+Type=notify
+ExecStart={{kubeHomeDir}}/bin/etcd --name {{ inventory_hostname }} \
+  --advertise-client-urls http://{{ansible_default_ipv4.address}}:{{etcd_port}} \
+  --initial-advertise-peer-urls http://{{ansible_default_ipv4.address}}:{{etcd_peer_port}} \
+  --listen-client-urls http://{{ansible_default_ipv4.address}}:{{etcd_port}},http://127.0.0.1:2379 \
+  --listen-peer-urls http://{{ansible_default_ipv4.address}}:{{etcd_peer_port}} \
+  --initial-cluster-token {{ initialClusterToken }} \
+  --initial-cluster {% for node in groups['etcd'] %}{{ node }}=http://{{ hostvars[node].ansible_eth0.ipv4.address }}:2380{% if not loop.last %},{% endif %}{% endfor %} \
+  --initial-cluster-state {{ initialClusterState }} \
+  --data-dir={{ etcdDataDir }}
+
+Restart=on-failure
+RestartSec=5
+LimitNPROC={{ LimitNPROC }}
+LimitNOFILE={{ LimitNOFILE }}
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,57 @@
+---
+- name: create directories
+  file: path={{item}} state=directory
+  with_items:
+  - "{{kubeHomeDir}}"
+  - "{{ kubeHomeDir }}/certs"
+  - "{{ kubeHomeDir }}/bin"
+  - "{{etcdDataDir}}"
+
+- name: install etcdctl-{{ etcdVersion }} binaries to "/usr/bin"
+  get_url:
+    url: "{{ repoSyseng }}/binaries/etcd/{{ etcdVersion }}/{{ item }}"
+    dest: /usr/bin/
+    mode: 0755
+    owner: root
+  with_items:
+  - etcdctl
+
+- name: download {{file}}-{{etcdVersion}} binary
+  vars:
+    file: etcd
+  get_url:
+    url: "{{ repoSyseng }}/binaries/etcd/{{ etcdVersion }}/{{file}}"
+    dest: "/tmp/{{file}}-{{etcdVersion}}"
+
+- name: install {{file}}-{{ etcdVersion }} binaries to {{ kubeHomeDir }}/bin/{{file}}
+  vars:
+    file: etcd
+  copy:
+    src: "/tmp/{{file}}-{{etcdVersion}}"
+    dest: "{{kubeHomeDir}}/bin/{{file}}"
+    remote_src: True
+    mode: 0544
+    owner: root
+  notify:
+  - restart {{file}}
+
+- name: create {{serviceName}} systemd unit
+  vars:
+    serviceName: etcd
+  template:
+    src: "{{serviceName}}.service.j2"
+    dest: "/etc/systemd/system/{{serviceName}}.service"
+    mode: 0644
+    backup: yes
+  notify:
+  - reload units
+  - restart {{serviceName}}
+
+- name: start and enable {{serviceName}} service
+  vars:
+    serviceName: etcd
+  systemd:
+    name: "{{serviceName}}"
+    daemon_reload: yes
+    enabled: yes
+    state: started

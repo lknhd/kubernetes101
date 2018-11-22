@@ -1,0 +1,8 @@
+---
+etcd_endpoints: http://127.0.0.1:2379
+KubernetesCluster: kubernetes
+cluster_domain: cluster.local
+ca_filename: ca.pem
+service_node_port_range: 30001-40000
+LimitNPROC: 1000000
+LimitNOFILE: 1000000

@@ -1,0 +1,31 @@
+---
+- name: install dependency
+  become: yes
+  apt:
+    pkg: ipcalc
+    state: latest
+
+- name: calculate kubernetes service IP
+  delegate_to: 127.0.0.1
+  run_once: true
+  shell: "ipcalc {{ serviceIpRange }} | awk '/HostMin/ {print $2}'"
+  register: kubeServiceIP
+
+- name: generate controller csr
+  delegate_to: 127.0.0.1
+  template:
+   src: controller-csr.json
+   dest: "files/kubernetes/{{ansible_default_ipv4.address}}-controller-csr.json"
+  register: result2
+
+- name: generate controller certs
+  delegate_to: 127.0.0.1
+  args:
+   chdir: "files"
+  shell: |
+   cfssl gencert \
+   -ca=kubernetes/kubernetes-ca.pem \
+   -ca-key=kubernetes/kubernetes-ca-key.pem \
+   -config=ca-config.json \
+   -profile=kubernetes \
+   kubernetes/{{ansible_default_ipv4.address}}-controller-csr.json | cfssljson -bare kubernetes/{{ansible_default_ipv4.address}}-controller
