@@ -52,6 +52,7 @@ vim group_vars/kube
 Generate ca for etcd and kubernetes:
 ```
 cd files
+mkdir etcd kubernetes
 cfssl gencert -initca ca-csr.json | cfssljson -bare etcd/etcd-ca
 cfssl gencert -initca ca-csr.json | cfssljson -bare kubernetes/kubernetes-ca
 ```
